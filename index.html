@@ -61,7 +61,6 @@
   @media (max-width: 860px){ .shell{ grid-template-columns: 1fr; } }
 
   .masthead{ grid-column: 1 / -1; border-bottom: 1px solid var(--hairline); padding: 28px 32px 22px; display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
-  .masthead-id{ font-family: var(--mono); font-size: 11px; letter-spacing: 0.14em; color: var(--gold); text-transform: uppercase; margin: 0 0 8px; }
   .masthead h1{ font-family: var(--serif); font-weight: 600; font-size: 34px; letter-spacing: -0.01em; margin: 0 0 6px; color: var(--text); }
   .masthead p{ margin: 0; color: var(--text-dim); font-size: 14px; max-width: 48ch; line-height: 1.5; }
   .masthead-right{ display:flex; align-items:center; gap: 14px; }
@@ -171,7 +170,6 @@
   .card-source .podcast{ color: var(--text-dim); font-weight: 600; }
   .card-hint{ font-family: var(--mono); font-size: 10.5px; color: var(--gold-dim); }
 
-  footer.note{ margin-top: 34px; color: var(--text-faint); font-size: 11.5px; font-family: var(--mono); border-top: 1px solid var(--hairline); padding-top: 16px; }
 
   /* ---------- Modal ---------- */
   .modal-backdrop{ position: fixed; inset: 0; background: rgba(6,9,13,0.72); display: none; align-items: flex-start; justify-content: center; padding: 6vh 20px; overflow-y: auto; z-index: 100; }
@@ -195,31 +193,16 @@
 <div class="shell">
   <header class="masthead">
     <div>
-      <p class="masthead-id">Archive · Sign in to save your own bookmarks</p>
       <h1>Product Manthan</h1>
-      <p>Churning product &amp; leadership podcasts and books down to their most actionable insights, frameworks, and mental models — organized so a beginner PM can find their way to a great one.</p>
+      <p>The AI-powered knowledge platform that helps product managers learn faster, think better, and build better products.</p>
     </div>
     <div class="masthead-right">
       <div class="stat"><span class="n" id="statTotal">0</span><span class="l">Insights</span></div>
       <div class="stat"><span class="n" id="statSources">0</span><span class="l">Sources</span></div>
       <button class="import-toggle" id="themeToggle" aria-pressed="false">☀️ Light mode</button>
-      <button class="import-toggle" id="importToggle">Preview a batch</button>
       <div class="auth-box" id="authBox"></div>
     </div>
   </header>
-
-  <section class="import-panel" id="importPanel">
-    <h3>Preview a batch (this session only)</h3>
-    <p style="font-family:var(--mono);font-size:11.5px;color:var(--text-faint);margin:0 0 10px;">
-      This previews new insights in your browser right now. It does not save — send the source to Claude and you'll get back a
-      fresh file with everything (old + new) baked in.
-    </p>
-    <textarea id="importInput" placeholder='Paste an array of insight objects — see schema in chat.'></textarea>
-    <div class="import-row">
-      <button id="importBtn">Preview in this browser</button>
-      <span class="import-msg" id="importMsg"></span>
-    </div>
-  </section>
 
   <nav class="sidebar" id="sidebar" aria-label="Categories and search"></nav>
 
@@ -229,7 +212,6 @@
       <div class="main-count" id="mainCount"></div>
     </div>
     <div id="cardArea" aria-live="polite"><div class="empty-state">Loading archive…</div></div>
-    <footer class="note">Every transcript or book adds to this same archive. Click a card to see its full context — explanation, why it matters, when, and how to apply it.</footer>
   </main>
 </div>
 
@@ -251,40 +233,38 @@ const sb = (SUPABASE_URL.startsWith('YOUR_') ? null : supabase.createClient(SUPA
 
 const CLUSTERS = [
   { id:'craft', name:'Product Craft', categories:[
-    {id:1,  name:'PM Fundamentals & Career Development'},
-    {id:2,  name:'Product Sense & Product Thinking'},
+    {id:1,  name:'PM Basics & Career Development'},
+    {id:2,  name:'Product Sense & Thinking'},
     {id:3,  name:'Product Discovery'},
     {id:4,  name:'Product Strategy'},
     {id:5,  name:'Business Thinking'},
-    {id:6,  name:'Product Prioritization & Roadmapping'},
-    {id:7,  name:'Product Planning & Execution'},
-    {id:8,  name:'Product Design & User Experience'},
-    {id:9,  name:'Product Innovation & Creativity'},
-    {id:10, name:'Product Analytics & Experimentation'},
-    {id:11, name:'Product Marketing & Positioning'},
+    {id:6,  name:'Prioritization & Roadmapping'},
+    {id:7,  name:'Planning & Execution'},
+    {id:8,  name:'Product Design & UX'},
+    {id:9,  name:'Innovation & Creativity'},
+    {id:10, name:'Analytics & Experimentation'},
+    {id:11, name:'Marketing & Positioning'},
     {id:12, name:'Product Launches'},
-    {id:13, name:'Product Growth & Go-to-Market'},
+    {id:13, name:'GTM Strategy & Growth'},
     {id:14, name:'Customer Success & Retention'},
     {id:15, name:'Technical Product Management'},
     {id:16, name:'AI Product Management'},
-    {id:17, name:'Stakeholder Management & Leadership'},
+    {id:17, name:'Stakeholder Management'},
     {id:18, name:'Product Operations & Scaling'},
     {id:19, name:'Executive Leadership & Culture'},
   ]},
   { id:'mastery', name:'Personal & Leadership Mastery', categories:[
-    {id:20, name:'Mindset & Inner Development'},
-    {id:21, name:'Emotional Intelligence & Self-Awareness'},
+    {id:20, name:'Mindset & Emotional Intelligence'},
     {id:22, name:'Habits, Discipline & Productivity'},
-    {id:23, name:'Neuroscience & Mental Models'},
+    {id:23, name:'Neuroscience, Psychology & Mental Models'},
     {id:24, name:'Problem Solving & Decision Making'},
-    {id:25, name:'Communication, Influence & Storytelling'},
+    {id:25, name:'Writing, Storytelling and Communication'},
+    {id:34, name:'Influence and Negotiation'},
     {id:26, name:'Networking & Relationship Building'},
     {id:27, name:'Goal Setting, Performance & Resilience'},
     {id:28, name:'Life Design & Meaning'},
-    {id:29, name:'Systems Thinking & Strategy'},
-    {id:30, name:'Behavioral Economics & Psychology'},
-    {id:31, name:'Entrepreneurship'},
-    {id:32, name:'Leadership Stories'},
+    {id:29, name:'Systems Thinking and Strategy'},
+    {id:31, name:'Leadership and Entrepreneurship'},
   ]}
 ];
 
@@ -464,7 +444,7 @@ const SEED = [
     when:"Apply in the moment you feel the urge to overrule a report's or peer's decision.",
     how:"Before stepping in, ask: is this truly catastrophic, or just different from what I'd have done? If not catastrophic, let it play out and schedule a reflection conversation."
   }},
-{category:30,type:'Principles',title:'Resist the urge to add process after a failure',tags:['organizational behavior','process'],
+{category:23,type:'Principles',title:'Resist the urge to add process after a failure',tags:['organizational behavior','process'],
   body:"The default instinct after something goes wrong is to add a constraint or process step — that usually doesn't produce better outcomes.",
   context:{
     explanation:"The default organizational instinct after something goes wrong is to add a constraint or process step — but that usually doesn't produce better outcomes.",
@@ -850,7 +830,7 @@ function renderAll(){ renderSidebar(); renderCards(); renderStats(); updateHeadi
 function renderAuthBox(){
   const box = document.getElementById('authBox');
   if (!sb){
-    box.innerHTML = `<span style="font-family:var(--mono);font-size:11px;color:var(--text-faint);">Sign-in not configured</span>`;
+    box.innerHTML = '';
     return;
   }
   if (currentUser){
@@ -916,22 +896,7 @@ document.getElementById('themeToggle').onclick = () => {
   }
 };
 
-document.getElementById('importToggle').onclick = () => {
-  document.getElementById('importPanel').classList.toggle('open');
-};
-document.getElementById('importBtn').onclick = async () => {
-  const raw = document.getElementById('importInput').value.trim();
-  const msg = document.getElementById('importMsg');
-  if (!raw){ msg.textContent = 'Paste a JSON array first.'; return; }
-  let parsed;
-  try{ parsed = JSON.parse(raw); if (!Array.isArray(parsed)) throw new Error('not an array'); }
-  catch(e){ msg.textContent = 'Could not parse that as a JSON array — check the format.'; return; }
-  const withIds = parsed.map((item, i) => ({ id: 'preview-' + Date.now() + '-' + i, ...item }));
-  insights = insights.concat(withIds);
-  document.getElementById('importInput').value = '';
-  msg.textContent = `Previewing ${withIds.length} insight(s) in this browser only — reload resets it. Send me the source to make it permanent.`;
-  renderAll();
-};
+
 
 renderAuthBox();
 renderAll();
@@ -939,14 +904,3 @@ renderAll();
 </script>
 </body>
 </html>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-
-<script>
-const supabase = window.supabase.createClient(
-  "https://yorniihubbljdjahnsfb.supabase.co",
-  "sb_publishable_N3qAxW5q4StHFsZF7nxawQ_F8M4l81R"
-);
-
-console.log("Supabase initialized!");
-</script>
