@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Product Manthan</title>
+<style>
+  :root{
+    --bg: #0F1720;
+    --bg-raised: #172231;
+    --bg-card: #1B2836;
+    --hairline: #2A3846;
+    --text: #E8E6DE;
+    --text-dim: #97A2AF;
+    --text-faint: #6B7885;
+    --gold: #C9A24B;
+    --gold-dim: #8A7239;
+    --teal: #4FA8A0;
+    --focus: #E8C97A;
+    --radius: 3px;
+    --serif: "Fraunces", "Georgia", serif;
+    --sans: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, monospace;
+  }
+
+  :root[data-theme="light"]{
+    --bg: #F7F4EC;
+    --bg-raised: #EFEAD9;
+    --bg-card: #FFFFFF;
+    --hairline: #DED6C0;
+    --text: #211D15;
+    --text-dim: #4B4437;
+    --text-faint: #756C5A;
+    --gold: #9C7A2E;
+    --gold-dim: #B99A55;
+    --teal: #2E7A73;
+    --focus: #8A6A1F;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin:0; padding:0; }
+  body{ background: var(--bg); color: var(--text); font-family: var(--sans); min-height: 100vh; transition: background-color .2s ease, color .2s ease; }
+  ::selection{ background: var(--gold); color: #14181f; }
+  a { color: inherit; }
+  button { font-family: var(--sans); cursor: pointer; }
+  button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+
+  .skip-link{
+    position: absolute; left: 12px; top: -60px;
+    background: var(--gold); color: #14181f; padding: 10px 16px;
+    border-radius: var(--radius); font-family: var(--mono); font-size: 12px;
+    z-index: 200; transition: top .15s ease;
+  }
+  .skip-link:focus{ top: 12px; }
+
+  .cluster-head:focus-visible, .cat-item:focus-visible, .card:focus-visible{
+    outline: 2px solid var(--focus); outline-offset: 2px;
+  }
+
+  .shell{ display: grid; grid-template-columns: 300px 1fr; min-height: 100vh; }
+  @media (max-width: 860px){ .shell{ grid-template-columns: 1fr; } }
+
+  .masthead{ grid-column: 1 / -1; border-bottom: 1px solid var(--hairline); padding: 28px 32px 22px; display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
+  .masthead-id{ font-family: var(--mono); font-size: 11px; letter-spacing: 0.14em; color: var(--gold); text-transform: uppercase; margin: 0 0 8px; }
+  .masthead h1{ font-family: var(--serif); font-weight: 600; font-size: 34px; letter-spacing: -0.01em; margin: 0 0 6px; color: var(--text); }
+  .masthead p{ margin: 0; color: var(--text-dim); font-size: 14px; max-width: 48ch; line-height: 1.5; }
+  .masthead-right{ display:flex; align-items:center; gap: 14px; }
+  .stat{ font-family: var(--mono); text-align: right; }
+  .stat .n{ font-size: 26px; color: var(--gold); display:block; line-height:1; }
+  .stat .l{ font-size: 10px; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.1em; }
+  .import-toggle{ background: transparent; border: 1px solid var(--hairline); color: var(--text-dim); border-radius: var(--radius); padding: 9px 14px; font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase; font-family: var(--mono); }
+  .import-toggle:hover{ border-color: var(--gold-dim); color: var(--gold); }
+
+  .import-panel{ grid-column: 1 / -1; border-bottom: 1px solid var(--hairline); background: var(--bg-raised); padding: 20px 32px; display: none; }
+  .import-panel.open{ display: block; }
+  .import-panel h3{ font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--gold); margin: 0 0 10px; }
+  .import-panel textarea{ width: 100%; min-height: 110px; background: var(--bg); color: var(--text); border: 1px solid var(--hairline); border-radius: var(--radius); font-family: var(--mono); font-size: 12px; padding: 12px; resize: vertical; }
+  .import-row{ display:flex; gap: 10px; margin-top: 10px; align-items:center; }
+  .import-row button{ background: var(--gold); color: #14181f; border: none; border-radius: var(--radius); padding: 9px 16px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+  .import-msg{ font-family: var(--mono); font-size: 12px; color: var(--text-dim); }
+
+  .sidebar{ border-right: 1px solid var(--hairline); padding: 22px 20px 40px; height: 100%; overflow-y: auto; }
+  .search-box{ position: relative; margin-bottom: 20px; }
+  .search-box input{ width: 100%; background: var(--bg-raised); border: 1px solid var(--hairline); color: var(--text); border-radius: var(--radius); padding: 10px 12px 10px 32px; font-size: 13px; font-family: var(--sans); }
+  .search-box input::placeholder{ color: var(--text-faint); }
+  .search-box svg{ position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; stroke: var(--text-faint); }
+
+  .active-filters{ display:flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+  .chip{ font-family: var(--mono); font-size: 11px; color: var(--bg); background: var(--gold); border-radius: 999px; padding: 3px 10px; display:flex; align-items:center; gap:6px; }
+  .chip button{ background:none; border:none; color: var(--bg); font-size: 13px; line-height:1; padding:0; }
+  .clear-all{ font-family: var(--mono); font-size: 11px; color: var(--text-faint); background: none; border: none; text-decoration: underline; padding: 0; }
+
+  .recent-chip{
+    display:flex; align-items:center; justify-content: space-between; width: 100%;
+    background: var(--bg-raised); border: 1px solid var(--hairline); color: var(--text-dim);
+    border-radius: var(--radius); padding: 9px 12px; font-size: 12.5px; font-family: var(--sans);
+    margin-bottom: 14px;
+  }
+  .recent-chip:hover{ border-color: var(--gold-dim); color: var(--text); }
+  .recent-chip.active{ border-color: var(--gold); color: var(--gold); background: rgba(201,162,75,0.08); }
+  .recent-chip .recent-count{ font-family: var(--mono); font-size: 11px; color: var(--text-faint); }
+
+  .view-tabs{ display:flex; gap: 4px; margin-bottom: 16px; background: var(--bg-raised); border-radius: var(--radius); padding: 3px; }
+  .view-tab{
+    flex:1; background: none; border: none; color: var(--text-faint); font-family: var(--mono);
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; padding: 7px 4px; border-radius: 2px;
+  }
+  .view-tab.active{ background: var(--bg-card); color: var(--gold); }
+
+  .new-badge{
+    font-family: var(--mono); font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.06em;
+    color: #14181f; background: var(--gold); border-radius: 999px; padding: 2px 7px;
+  }
+
+  .auth-box{ display:flex; align-items:center; gap: 8px; }
+  .auth-btn{
+    display:flex; align-items:center; gap: 8px; background: transparent; border: 1px solid var(--hairline);
+    color: var(--text-dim); border-radius: var(--radius); padding: 9px 14px; font-size: 12.5px; font-family: var(--sans);
+  }
+  .auth-btn:hover{ border-color: var(--gold-dim); color: var(--gold); }
+  .auth-btn img{ width: 16px; height: 16px; }
+  .user-chip{ display:flex; align-items:center; gap: 8px; font-size: 12.5px; color: var(--text-dim); }
+  .user-chip img{ width: 24px; height: 24px; border-radius: 50%; }
+  .signout-btn{ background:none; border:none; color: var(--text-faint); font-family: var(--mono); font-size: 11px; text-decoration: underline; padding: 0; }
+
+  .bookmark-btn{
+    background: none; border: 1px solid var(--hairline); color: var(--text-faint); border-radius: var(--radius);
+    width: 30px; height: 30px; display:flex; align-items:center; justify-content:center; font-size: 15px; flex: none;
+  }
+  .bookmark-btn:hover{ border-color: var(--gold-dim); color: var(--gold); }
+  .bookmark-btn.saved{ color: var(--gold); border-color: var(--gold-dim); }
+  .card-top-row{ display:flex; align-items:flex-start; justify-content: space-between; gap: 8px; }
+
+  .cluster{ margin-bottom: 6px; }
+  .cluster-head{ display:flex; align-items:center; justify-content: space-between; padding: 10px 4px; cursor: pointer; user-select: none; }
+  .cluster-head:hover .cluster-title{ color: var(--text); }
+  .cluster-title{ font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-dim); }
+  .cluster-caret{ color: var(--text-faint); font-size: 10px; transition: transform .15s ease; }
+  .cluster.collapsed .cluster-caret{ transform: rotate(-90deg); }
+  .cluster.collapsed .cat-list{ display:none; }
+
+  .cat-list{ list-style:none; margin:0; padding:0 0 8px; }
+  .cat-item{ display:flex; align-items:center; gap: 9px; padding: 7px 8px 7px 10px; border-radius: var(--radius); cursor: pointer; font-size: 13px; color: var(--text-dim); border-left: 2px solid transparent; }
+  .cat-item:hover{ background: var(--bg-raised); color: var(--text); }
+  .cat-item.active{ background: var(--bg-raised); color: var(--text); border-left-color: var(--cat-color, var(--gold)); }
+  .cat-dot{ width: 7px; height: 7px; border-radius: 50%; background: var(--cat-color, var(--gold)); flex: none; }
+  .cat-name{ flex:1; line-height:1.25; }
+  .cat-count{ font-family: var(--mono); font-size: 11px; color: var(--text-faint); }
+
+  .main{ padding: 26px 32px 60px; min-width: 0; }
+  .main-top{ display:flex; align-items: baseline; justify-content: space-between; margin-bottom: 18px; flex-wrap: wrap; gap: 10px; }
+  .main-heading{ font-family: var(--serif); font-size: 20px; color: var(--text); }
+  .main-count{ font-family: var(--mono); font-size: 12px; color: var(--text-faint); }
+  .empty-state{ border: 1px dashed var(--hairline); border-radius: var(--radius); padding: 50px 24px; text-align: center; color: var(--text-dim); }
+
+  .grid{ display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
+
+  .card{ background: var(--bg-card); border: 1px solid var(--hairline); border-radius: var(--radius); padding: 18px 18px 16px; display: flex; flex-direction: column; gap: 10px; cursor: pointer; transition: border-color .15s ease, transform .15s ease; }
+  .card:hover{ border-color: var(--gold-dim); transform: translateY(-1px); }
+  .card-top{ display:flex; align-items:center; justify-content: space-between; gap: 10px; }
+  .card-id{ font-family: var(--mono); font-size: 11px; color: var(--text-faint); letter-spacing: 0.06em; }
+  .card-type{ font-family: var(--mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; padding: 3px 8px; border-radius: 999px; border: 1px solid var(--hairline); color: var(--text-dim); white-space: nowrap; }
+  .card-cat{ font-family: var(--mono); font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--cat-color); display:flex; align-items:center; gap:6px; }
+  .card-cat .cat-dot{ width:6px; height:6px; }
+  .card h3{ font-family: var(--serif); font-weight: 600; font-size: 16.5px; margin: 0; line-height: 1.3; color: var(--text); }
+  .card p.body{ margin: 0; font-size: 13.5px; line-height: 1.6; color: var(--text-dim); }
+  .card-tags{ display:flex; flex-wrap:wrap; gap:6px; margin-top: 2px; }
+  .tag{ font-family: var(--mono); font-size: 10.5px; color: var(--text-faint); border: 1px solid var(--hairline); border-radius: 999px; padding: 2px 8px; }
+  .card-source{ margin-top: auto; padding-top: 10px; border-top: 1px solid var(--hairline); font-size: 11.5px; color: var(--text-faint); display: flex; flex-direction: column; gap: 2px; }
+  .card-source .src-kind{ font-family: var(--mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--teal); margin-bottom: 2px; }
+  .card-source .podcast{ color: var(--text-dim); font-weight: 600; }
+  .card-hint{ font-family: var(--mono); font-size: 10.5px; color: var(--gold-dim); }
+
+  footer.note{ margin-top: 34px; color: var(--text-faint); font-size: 11.5px; font-family: var(--mono); border-top: 1px solid var(--hairline); padding-top: 16px; }
+
+  /* ---------- Modal ---------- */
+  .modal-backdrop{ position: fixed; inset: 0; background: rgba(6,9,13,0.72); display: none; align-items: flex-start; justify-content: center; padding: 6vh 20px; overflow-y: auto; z-index: 100; }
+  .modal-backdrop.open{ display: flex; }
+  .modal{ background: var(--bg-card); border: 1px solid var(--hairline); border-radius: 4px; max-width: 640px; width: 100%; padding: 26px 28px 28px; position: relative; }
+  .modal-close{ position: absolute; top: 16px; right: 16px; background: none; border: 1px solid var(--hairline); color: var(--text-dim); border-radius: var(--radius); width: 28px; height: 28px; font-size: 16px; line-height: 1; }
+  .modal-close:hover{ color: var(--gold); border-color: var(--gold-dim); }
+  .modal-top{ display:flex; align-items:center; gap: 10px; margin-bottom: 10px; padding-right: 34px; }
+  .modal-cat{ font-family: var(--mono); font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--cat-color); display:flex; align-items:center; gap:6px; margin-bottom: 6px; }
+  .modal h2{ font-family: var(--serif); font-size: 22px; margin: 0 0 12px; line-height:1.3; color: var(--text); }
+  .modal .body{ font-size: 14px; line-height: 1.65; color: var(--text-dim); margin: 0 0 18px; }
+  .modal-section{ margin-bottom: 16px; }
+  .modal-section h4{ font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.09em; color: var(--gold); margin: 0 0 6px; }
+  .modal-section p{ margin: 0; font-size: 13.5px; line-height: 1.6; color: var(--text-dim); }
+  .modal-tags{ display:flex; flex-wrap:wrap; gap:6px; margin: 4px 0 18px; }
+  .modal .card-source{ margin-top: 6px; border-top: 1px solid var(--hairline); padding-top: 14px; }
+</style>
+</head>
+<body>
+<a href="#mainContent" class="skip-link">Skip to insights</a>
+<div class="shell">
+  <header class="masthead">
+    <div>
+      <p class="masthead-id">Archive · Sign in to save your own bookmarks</p>
+      <h1>Product Manthan</h1>
+      <p>Churning product &amp; leadership podcasts and books down to their most actionable insights, frameworks, and mental models — organized so a beginner PM can find their way to a great one.</p>
+    </div>
+    <div class="masthead-right">
+      <div class="stat"><span class="n" id="statTotal">0</span><span class="l">Insights</span></div>
+      <div class="stat"><span class="n" id="statSources">0</span><span class="l">Sources</span></div>
+      <button class="import-toggle" id="themeToggle" aria-pressed="false">☀️ Light mode</button>
+      <button class="import-toggle" id="importToggle">Preview a batch</button>
+      <div class="auth-box" id="authBox"></div>
+    </div>
+  </header>
+
+  <section class="import-panel" id="importPanel">
+    <h3>Preview a batch (this session only)</h3>
+    <p style="font-family:var(--mono);font-size:11.5px;color:var(--text-faint);margin:0 0 10px;">
+      This previews new insights in your browser right now. It does not save — send the source to Claude and you'll get back a
+      fresh file with everything (old + new) baked in.
+    </p>
+    <textarea id="importInput" placeholder='Paste an array of insight objects — see schema in chat.'></textarea>
+    <div class="import-row">
+      <button id="importBtn">Preview in this browser</button>
+      <span class="import-msg" id="importMsg"></span>
+    </div>
+  </section>
+
+  <nav class="sidebar" id="sidebar" aria-label="Categories and search"></nav>
+
+  <main class="main" id="mainContent">
+    <div class="main-top">
+      <div class="main-heading" id="mainHeading">All insights</div>
+      <div class="main-count" id="mainCount"></div>
+    </div>
+    <div id="cardArea" aria-live="polite"><div class="empty-state">Loading archive…</div></div>
+    <footer class="note">Every transcript or book adds to this same archive. Click a card to see its full context — explanation, why it matters, when, and how to apply it.</footer>
+  </main>
+</div>
+
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal" id="modalPanel" role="dialog" aria-modal="true"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+/* ============================================================
+   SUPABASE CONFIG — fill these in from your Supabase project
+   (Project Settings → API). The anon/public key is safe to
+   expose in client-side code; it only works within your RLS
+   policies.
+   ============================================================ */
+const SUPABASE_URL = 'YOUR_SUPABASE_PROJECT_URL';
+const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_PUBLIC_KEY';
+const sb = (SUPABASE_URL.startsWith('YOUR_') ? null : supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY));
+
+const CLUSTERS = [
+  { id:'craft', name:'Product Craft', categories:[
+    {id:1,  name:'PM Fundamentals & Career Development'},
+    {id:2,  name:'Product Sense & Product Thinking'},
+    {id:3,  name:'Product Discovery'},
+    {id:4,  name:'Product Strategy'},
+    {id:5,  name:'Business Thinking'},
+    {id:6,  name:'Product Prioritization & Roadmapping'},
+    {id:7,  name:'Product Planning & Execution'},
+    {id:8,  name:'Product Design & User Experience'},
+    {id:9,  name:'Product Innovation & Creativity'},
+    {id:10, name:'Product Analytics & Experimentation'},
+    {id:11, name:'Product Marketing & Positioning'},
+    {id:12, name:'Product Launches'},
+    {id:13, name:'Product Growth & Go-to-Market'},
+    {id:14, name:'Customer Success & Retention'},
+    {id:15, name:'Technical Product Management'},
+    {id:16, name:'AI Product Management'},
+    {id:17, name:'Stakeholder Management & Leadership'},
+    {id:18, name:'Product Operations & Scaling'},
+    {id:19, name:'Executive Leadership & Culture'},
+  ]},
+  { id:'mastery', name:'Personal & Leadership Mastery', categories:[
+    {id:20, name:'Mindset & Inner Development'},
+    {id:21, name:'Emotional Intelligence & Self-Awareness'},
+    {id:22, name:'Habits, Discipline & Productivity'},
+    {id:23, name:'Neuroscience & Mental Models'},
+    {id:24, name:'Problem Solving & Decision Making'},
+    {id:25, name:'Communication, Influence & Storytelling'},
+    {id:26, name:'Networking & Relationship Building'},
+    {id:27, name:'Goal Setting, Performance & Resilience'},
+    {id:28, name:'Life Design & Meaning'},
+    {id:29, name:'Systems Thinking & Strategy'},
+    {id:30, name:'Behavioral Economics & Psychology'},
+    {id:31, name:'Entrepreneurship'},
+    {id:32, name:'Leadership Stories'},
+  ]}
+];
+
+const ALL_CATEGORIES = CLUSTERS.flatMap(c => c.categories);
+const CRAFT_COUNT = CLUSTERS[0].categories.length;
+const MASTERY_COUNT = CLUSTERS[1].categories.length;
+
+function catColor(catId){
+  if (catId <= CRAFT_COUNT){
+    const hue = 170 + Math.round((catId-1) * (60/CRAFT_COUNT));
+    return `hsl(${hue}, 42%, 58%)`;
+  } else {
+    const i = catId - CRAFT_COUNT - 1;
+    const hue = 25 + Math.round(i * (60/MASTERY_COUNT));
+    return `hsl(${hue}, 55%, 60%)`;
+  }
+}
+function catName(id){ return (ALL_CATEGORIES.find(c=>c.id===id)||{}).name || 'Uncategorized'; }
+
+const TYPES = [
+  'Principles','Mental Models','Frameworks','Best Practices','Quotes','Powerful Ideas',
+  'Actionable Advice','Decision-Making Heuristics','Checklists','Playbooks','Processes',
+  'Case Studies','Stories & Analogies','Common Mistakes','Action Items','Key Takeaways',
+  'Book Recommendations','Tools & Resources','Real-World Examples','Habits','Rituals','Systems'
+];
+
+const SOURCE_ES = {
+  kind: 'podcast',
+  podcast: "Lenny's Podcast",
+  host: "Lenny Rachitsky",
+  guest: "Elizabeth Stone — Chief Product & Technology Officer, Netflix",
+  episode: "Elizabeth Stone (Netflix): roles, craft, and culture in the AI era"
+};
+
+const SEED = [
+{category:29,type:'Frameworks',title:'The one-click zoom-out',tags:['systems thinking','frameworks'],
+  body:"Before diving into any assigned problem, step back exactly one level and ask what you're assuming is true about the broader space it sits in — then return to execution.",
+  context:{
+    explanation:"This is a lightweight systems-thinking habit — rather than diving straight into execution, you pause for a single beat to check the broader assumption behind the problem you've been handed.",
+    why:"Local, fast execution without any zoom-out is exactly how teams build the wrong thing quickly — a small pause catches misaligned assumptions before they get expensive to unwind.",
+    when:"The moment you're handed a scoped task or feature request, before you start designing a solution — especially when the problem feels routine, since that's when it's easiest to skip entirely.",
+    how:"Ask yourself: 'What am I assuming is true about the broader space this problem sits in?' Spend one or two minutes on it, then return to execution — don't let the questioning stage drag on and stall progress."
+  }},
+{category:29,type:'Mental Models',title:'Think like your manager',tags:['systems thinking','perspective-taking'],
+  body:"Zoom out by asking how your manager — or the wider org across finance, content, and other functions — would view the problem you're solving, not just your own team's KPI.",
+  context:{
+    explanation:"A perspective-shifting mental model: instead of only optimizing for your own team's KPI, imagine how your manager — or the wider org — would view the same problem.",
+    why:"Your local view is naturally narrow; zooming out to your manager's vantage point surfaces cross-functional tradeoffs that are invisible from inside your own team.",
+    when:"When you're deep in a team-level decision and sense there might be a bigger tradeoff you're not seeing — e.g. before finalizing a roadmap bet or a prioritization call.",
+    how:"Pause and ask: 'If my manager were making this call, weighing my team against every other priority they own, what would they want here?' Use the answer to pressure-test your plan."
+  }},
+{category:17,type:'Actionable Advice',title:"Make your manager's job easier",tags:['career tactics','trust'],
+  body:"A durable, low-cost career move: reduce your manager's coordination or decision load, not just complete your own deliverables. It compounds trust faster than visibility-seeking.",
+  context:{
+    explanation:"A career tactic: actively look for the recurring things your manager has to chase, coordinate, or clean up — and take ownership of them before being asked.",
+    why:"It compounds trust and visibility far faster than simply completing your own deliverables well, because it demonstrates judgment beyond your assigned scope.",
+    when:"Continuously — especially in 1:1s, status updates, and any moment you notice your manager repeating the same ask.",
+    how:"Notice the pattern (what does my manager keep having to ask for or clean up?), then proactively own that piece of work or information flow without waiting to be asked."
+  }},
+{category:1,type:'Principles',title:'Storming before forming',tags:['change management','role clarity'],
+  body:"Any transformative new technology triggers a 'storming' phase before a 'forming' phase where new norms stabilize. Current AI-driven role confusion is a normal transition stage, not a sign something is broken.",
+  context:{
+    explanation:"A framing principle borrowed from group-development theory: any transformative new technology triggers a period of role confusion ('storming') before new norms stabilize ('forming').",
+    why:"Without this frame, current AI-driven confusion over who does what can feel like a sign something is broken, when it's actually a normal, temporary transition stage.",
+    when:"Reach for this when you or your team feel disoriented about role boundaries after a new tool, process, or technology rollout.",
+    how:"Name the phase out loud with your team ('we're in the storming phase') to reduce anxiety, and focus energy on defining new norms rather than assigning blame."
+  }},
+{category:16,type:'Frameworks',title:'Get the benefit, contain the cost',tags:['AI governance','guardrails'],
+  body:"To adopt AI without letting quality slip: clarity on source-of-truth data; review gates before high-risk changes ship; explicit trust criteria for AI output; and reinforced human accountability for outcomes.",
+  context:{
+    explanation:"A four-part checklist for adopting AI responsibly: source-of-truth data clarity, review gates before high-risk changes ship, explicit trust criteria for AI output, and reinforced human accountability.",
+    why:"Adopting AI without these guardrails risks fast, confident-looking output that nobody actually validates — the guardrails let you get AI's speed without losing quality or accountability.",
+    when:"Use when standing up any new AI-assisted workflow on your team — as a pre-launch checklist, not something you retrofit after a quality problem appears.",
+    how:"Before launch, explicitly answer: What's our source-of-truth data? What needs a review gate? When can we trust AI output vs. require human review? Who stays accountable?"
+  }},
+{category:8,type:'Principles',title:"Faster tools don't retire the design mindset",tags:['design thinking','craft'],
+  body:"Even as prototyping accelerates, the most important priorities still deserve deliberate design work — making complexity invisible for the end user doesn't get automated away.",
+  context:{
+    explanation:"Even though prototyping tools have gotten dramatically faster, the deliberate design thinking behind your most important priorities still deserves real time and attention.",
+    why:"The differentiator was never speed — it's the design mindset of making complexity invisible for the end user, and that doesn't get automated away just because a prototype exists.",
+    when:"When scoping your highest-priority initiatives — resist skipping deliberate design work just because a rough prototype already exists.",
+    how:"For your top-priority work, deliberately timebox real design exploration even if a 'good enough' prototype already exists — don't let speed substitute for depth."
+  }},
+{category:27,type:'Principles',title:'Craft mastery stays scarce',tags:['mastery','judgment'],
+  body:"AI lowers the bar to produce something, but great engineering, design, and data science remain scarce. The compounding skill is judging what 'good' looks like.",
+  context:{
+    explanation:"AI has lowered the bar to produce something, but great engineering, design, and data science — the judgment of what 'good' actually looks like — remain genuinely scarce.",
+    why:"As raw output becomes cheap and abundant, the ability to judge quality becomes the actual bottleneck and the more valuable skill to build.",
+    when:"Keep this in mind whenever you're evaluating your own growth plan or a junior person's development plan.",
+    how:"Invest deliberate time in developing taste and judgment — study what 'excellent' looks like in your craft, not just how to produce faster with new tools."
+  }},
+{category:20,type:'Actionable Advice',title:'Hire and grow for curiosity over static expertise',tags:['hiring','growth mindset'],
+  body:"Prioritize comfort with ambiguity and willingness to keep exploring new tools over narrow, fixed specialization. Treat 'AI fluency' as a mindset, not a checklist.",
+  context:{
+    explanation:"A hiring and self-development lens: prioritize comfort with ambiguity and genuine curiosity about new tools over narrow, fixed technical specialization.",
+    why:"'AI fluency' is better understood as an experimental mindset than a checklist of specific skills, because tools and techniques change faster than any skill list can track.",
+    when:"Use this in hiring rubrics, interview evaluation criteria, and your own self-assessment during performance reviews.",
+    how:"When evaluating yourself or a candidate, ask: do they show genuine curiosity and willingness to experiment, rather than just listing tools they already know?"
+  }},
+{category:27,type:'Principles',title:'Specialists still win — if they keep re-asking the question',tags:['career development','adaptability'],
+  body:"Deep narrow specialists are declining in relative value against adaptable generalists — but subject-matter expertise remains an advantage for those willing to keep questioning it.",
+  context:{
+    explanation:"Deep narrow specialists are becoming relatively less valuable compared to adaptable generalists — but specialization is still an advantage for people who keep questioning whether their approach still fits.",
+    why:"The risk isn't specialization itself — it's static specialization, where someone stops re-evaluating whether their expertise still fits the problems in front of them.",
+    when:"Revisit this periodically as a personal check-in, especially after a significant shift in your tools, team, or problem space.",
+    how:"Ask yourself regularly: 'Is my specialty still the best tool for the problems I'm facing now, or am I reaching for it out of habit?'"
+  }},
+{category:18,type:'Real-World Examples',title:'More builders means more shared infrastructure, not less',tags:['scaling','platform'],
+  body:"As AI lets more people build things themselves, invest more — not less — in shared infrastructure and 'paved paths' so rising velocity doesn't outrun quality and safety.",
+  context:{
+    explanation:"As AI lets more people build things themselves, organizations need to invest more — not less — in shared infrastructure, tooling, and standards ('paved paths').",
+    why:"Without shared infrastructure, more builders moving faster just means more inconsistent, ungoverned output at greater scale.",
+    when:"Apply when your org sees a surge in AI-assisted building — treat the surge as the trigger to invest in platform work, not a reason to relax standards.",
+    how:"When you notice more people building independently, proactively propose or invest in the common tooling, design systems, or data standards that keep that building safe and consistent."
+  }},
+{category:17,type:'Frameworks',title:"The keeper's test",tags:['performance management','feedback'],
+  body:"Regularly ask, for any direct report: 'if this person told me today they were leaving, would I fight to keep them?' It's mostly a positive, recognition-driving conversation starter.",
+  context:{
+    explanation:"A performance-management framework: for any direct report, regularly ask yourself, 'if this person told me today they were leaving, would I fight to keep them?'",
+    why:"It forces consistent feedback hygiene and is mostly a positive, recognition-driving conversation — not just an exit-decision tool — which most managers otherwise avoid doing regularly.",
+    when:"Run this mentally before every 1:1 cycle with direct reports, not only when performance is already in question.",
+    how:"Before a 1:1, ask yourself the keeper's-test question, then structure the conversation around what you'd tell them if the answer is a strong yes — or what would need to change if it isn't."
+  }},
+{category:19,type:'Frameworks',title:'Excellence as an operating system',tags:['culture','leadership'],
+  body:"Four pillars: non-negotiable talent density; high autonomy/accountability; comfort with risk-taking and fast recovery; and resisting adding process after something goes wrong.",
+  context:{
+    explanation:"A four-pillar framework for building a culture aimed at excellence: talent density, autonomy pushed deep into the org, comfort with risk-taking, and resisting process-creep after failures.",
+    why:"These pillars work together — talent density makes autonomy safe, and resisting process-creep after failures preserves the speed and ownership the other pillars depend on.",
+    when:"Use when designing or auditing team culture and operating norms, especially during a team's formation or a reset after a rough quarter.",
+    how:"Audit your team against all four pillars explicitly — hiring bar, how deep decisions are pushed, how risk-taking is treated after failures, and your instinct after mistakes."
+  }},
+{category:1,type:'Actionable Advice',title:"Overlay AI fluency instead of rewriting the ladder",tags:['career ladders','org design'],
+  body:"Rather than rewriting career-ladder criteria for AI, layer one cross-level aspiration — 'AI fluency' — on top of the existing ladder, and let its meaning flex by role and seniority.",
+  context:{
+    explanation:"Rather than rewriting career-ladder criteria line-by-line for AI, layer one cross-level aspiration — 'AI fluency' — on top of the existing ladder.",
+    why:"A fully rewritten ladder goes stale within a quarter given how fast AI capabilities change; an overlay stays relevant because its meaning can evolve without a full rewrite.",
+    when:"Apply when your org is under pressure to 'update the career ladder for AI.'",
+    how:"Propose a single AI-fluency aspiration statement across all levels, and define per-level or per-role examples of what it looks like — rather than editing every existing ladder criterion."
+  }},
+{category:17,type:'Principles',title:"Easier tools don't remove the need to teach judgment",tags:['mentorship','junior talent'],
+  body:"Junior team members still need deliberate mentorship on what good looks like, and still own accountability for reviewing, testing, and diagnosing AI-assisted output.",
+  context:{
+    explanation:"Junior team members still need deliberate mentorship on what 'good' looks like, and still own accountability for reviewing, testing, and diagnosing AI-assisted output.",
+    why:"Tools that produce more, faster, actually raise the mentorship bar rather than lowering it — more output means more that needs someone's trained eye on it.",
+    when:"Apply when onboarding or mentoring junior PMs or engineers who lean heavily on AI tools.",
+    how:"Don't let tool fluency substitute for judgment-building — review AI-assisted output together, and ask the junior person to explain and defend it, not just produce it."
+  }},
+{category:4,type:'Real-World Examples',title:"Betting that entertainment won't be one thing",tags:['product strategy','portfolio'],
+  body:"Expanding beyond a single core format into games, live events, and podcasts is a bet that the category is fragmenting — shifting the problem to discovery and personalization.",
+  context:{
+    explanation:"A real-world strategy example: expanding beyond a single core product format into adjacent formats is a bet that the category itself is fragmenting, not just an attempt to produce more content.",
+    why:"This reframes the hard strategic problem from 'produce more' to 'make discovery and personalization seamless across a much wider catalog' — a fundamentally different problem.",
+    when:"Reference this when evaluating any portfolio-expansion strategy for a product.",
+    how:"When considering expanding into a new format, explicitly ask whether your discovery/personalization systems can handle the added breadth — not just whether you can produce the content."
+  }},
+{category:25,type:'Principles',title:'Storytelling is a human-first need',tags:['storytelling','product experience'],
+  body:"Storytelling is one of the oldest human needs. Technology can amplify it, but content that strips the human element from the center tends to land as less compelling.",
+  context:{
+    explanation:"Storytelling is framed as one of the oldest human needs. Technology can amplify storytelling, but content that strips the human element from the center tends to land as less compelling.",
+    why:"Products built around content or narrative risk losing what actually connects with people if the technology becomes the center of the experience instead of the human story.",
+    when:"Apply when designing any content-driven or narrative-driven product feature.",
+    how:"Before shipping, explicitly check: is there still a human — a creator, character, or storyteller — at the center of this experience?"
+  }},
+{category:27,type:'Actionable Advice',title:'Two small resilience heuristics',tags:['resilience','life motto'],
+  body:"Watch for the one good thing that happens each day, even in stressful stretches; and remember that the last 5% of effort is usually what makes the difference.",
+  context:{
+    explanation:"Two simple daily practices for sustaining resilience under pressure: actively watch for the one good thing each day, and remember the last 5% of effort usually matters most.",
+    why:"Small, repeatable habits like these are more sustainable under chronic pressure than one-off motivational efforts, because they don't depend on a big moment of willpower.",
+    when:"Use daily, especially during high-stress stretches at work — this is a standing practice, not a one-time fix.",
+    how:"At the end of each day, name one good thing that happened. And before calling something 'done,' ask if there's one more pass of effort that would meaningfully improve it."
+  }},
+{category:24,type:'Principles',title:'Let people make the call you disagree with',tags:['decision making','delegation'],
+  body:"When you disagree with a non-catastrophic decision a report or peer made, the higher-leverage move is to let it stand and revisit it together afterward.",
+  context:{
+    explanation:"When you disagree with a decision a report or peer made, and it isn't catastrophic, the higher-leverage move is to let it stand and revisit it together afterward.",
+    why:"Constant correction prevents people from building their own judgment; letting non-catastrophic decisions play out — then reflecting together — builds better long-term judgment.",
+    when:"Apply in the moment you feel the urge to overrule a report's or peer's decision.",
+    how:"Before stepping in, ask: is this truly catastrophic, or just different from what I'd have done? If not catastrophic, let it play out and schedule a reflection conversation."
+  }},
+{category:30,type:'Principles',title:'Resist the urge to add process after a failure',tags:['organizational behavior','process'],
+  body:"The default instinct after something goes wrong is to add a constraint or process step — that usually doesn't produce better outcomes.",
+  context:{
+    explanation:"The default organizational instinct after something goes wrong is to add a constraint or process step — but that usually doesn't produce better outcomes.",
+    why:"Process added reactively tends to slow everyone down going forward without actually preventing the next, different failure — shared learning is more adaptive.",
+    when:"Apply immediately after any postmortem or retro, right when the instinct to add a rule is strongest.",
+    how:"Before proposing a new rule, ask instead: 'how do we share this learning so people make better judgment calls next time?'"
+  }},
+{category:15,type:'Principles',title:'Understanding beats writing, as agents write more code',tags:['engineering','AI-native work'],
+  body:"As agents write more code, the durable skill shifts from writing a language to explaining why a system works, diagnosing it when it breaks, and judging its output.",
+  context:{
+    explanation:"As agents take on more of the actual coding, the durable engineering skill shifts from writing a given language to explaining why a system works and judging its output.",
+    why:"If no one on the team understands why a system works, nobody can safely fix it when it breaks or trust its output under pressure.",
+    when:"Apply when planning technical skill development for yourself or your team in an AI-assisted engineering environment.",
+    how:"When reviewing AI-generated code, prioritize being able to explain how and why it works over how quickly it was produced — build this into code review norms."
+  }},
+{category:3,type:'Actionable Advice',title:'Use AI to retrieve your own institutional memory first',tags:['research ops','institutional knowledge'],
+  body:"Before running new research, use AI to rapidly retrieve and distill what your organization already learned as a starting hypothesis — then validate it with an expert.",
+  context:{
+    explanation:"Before running new research, use AI to rapidly retrieve and distill what your organization already learned — past experiments, past user research — as a starting hypothesis.",
+    why:"It's much faster than pinging a colleague or starting from scratch, and it prevents you from re-learning something the organization already knows.",
+    when:"Apply at the very start of any new discovery effort, before scheduling new research.",
+    how:"Ask an AI tool connected to your team's research history: 'what have we already learned about X?' Then validate whatever it surfaces with a subject-matter expert."
+  }},
+{category:1,type:'Actionable Advice',title:'Compete on persona fit, not just compensation',tags:['talent strategy','positioning'],
+  body:"Attracting talent against well-funded competitors works better by naming the specific kind of person who thrives at your company than by out-bidding generically on pay.",
+  context:{
+    explanation:"Against well-funded competitors, attracting talent works better by being explicit about the specific kind of person who thrives at your company than by out-bidding on pay alone.",
+    why:"Being generic about 'we pay well and do interesting work' doesn't differentiate you; naming the specific persona who loves what your company does helps the right people self-select in.",
+    when:"Apply when writing job descriptions or talking to candidates at a company that can't win purely on compensation.",
+    how:"Explicitly describe the kind of person who thrives at your company in job postings and interview conversations, rather than leading with generic perks."
+  }},
+];
+
+let insights = SEED.map((s, i) => ({ id: 'seed-'+i, batch: 1, ...s, source: s.source || SOURCE_ES }));
+
+let activeCategory = null;
+let currentUser = null;
+let bookmarkedIds = new Set();
+let bookmarksOnly = false;
+let activeSourceKey = null;
+let sidebarView = 'category'; // 'category' | 'source'
+let recentOnly = false;
+let query = '';
+const collapsedClusters = new Set();
+
+function sourceKey(source){
+  if (!source) return 'unknown';
+  return source.kind === 'book' ? 'book::'+(source.book||'') : 'podcast::'+(source.podcast||'')+'::'+(source.episode||'');
+}
+function sourceLabel(source){
+  if (!source) return 'Unknown source';
+  return source.kind === 'book' ? (source.book || 'Untitled book') : (source.episode || source.podcast || 'Untitled episode');
+}
+function sourceSubLabel(source){
+  if (!source) return '';
+  return source.kind === 'book' ? (source.author ? 'by '+source.author : '') : (source.guest ? 'with '+source.guest : source.podcast||'');
+}
+function latestBatch(){
+  return insights.reduce((max, i) => Math.max(max, i.batch||0), 0);
+}
+
+function renderSidebar(){
+  const el = document.getElementById('sidebar');
+  el.innerHTML = '';
+
+  const searchWrap = document.createElement('div');
+  searchWrap.className = 'search-box';
+  searchWrap.innerHTML = `
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input type="text" id="searchInput" aria-label="Search insights, tags, sources" placeholder="Search insights, tags, sources…" value="${query.replace(/"/g,'&quot;')}" />
+  `;
+  el.appendChild(searchWrap);
+
+  const recent = latestBatch();
+  const recentCount = insights.filter(i => i.batch === recent).length;
+  const recentBtn = document.createElement('button');
+  recentBtn.className = 'recent-chip' + (recentOnly ? ' active' : '');
+  recentBtn.type = 'button';
+  recentBtn.innerHTML = `✨ Recently added <span class="recent-count">${recentCount}</span>`;
+  recentBtn.onclick = () => { recentOnly = !recentOnly; renderAll(); };
+  el.appendChild(recentBtn);
+
+  if (sb){
+    const bmBtn = document.createElement('button');
+    bmBtn.className = 'recent-chip' + (bookmarksOnly ? ' active' : '');
+    bmBtn.type = 'button';
+    bmBtn.innerHTML = currentUser
+      ? `★ My bookmarks <span class="recent-count">${bookmarkedIds.size}</span>`
+      : `★ My bookmarks <span class="recent-count">sign in</span>`;
+    bmBtn.onclick = () => {
+      if (!currentUser){ document.getElementById('signInBtn')?.click(); return; }
+      bookmarksOnly = !bookmarksOnly; renderAll();
+    };
+    el.appendChild(bmBtn);
+  }
+
+  const viewTabs = document.createElement('div');
+  viewTabs.className = 'view-tabs';
+  viewTabs.innerHTML = `
+    <button class="view-tab${sidebarView==='category'?' active':''}" id="viewTabCategory" type="button">By Category</button>
+    <button class="view-tab${sidebarView==='source'?' active':''}" id="viewTabSource" type="button">By Source</button>
+  `;
+  el.appendChild(viewTabs);
+  document.getElementById('viewTabCategory').onclick = () => { sidebarView = 'category'; activeSourceKey = null; renderAll(); };
+  document.getElementById('viewTabSource').onclick = () => { sidebarView = 'source'; activeCategory = null; renderAll(); };
+
+  if (activeCategory || activeSourceKey || query || recentOnly || bookmarksOnly){
+    const filters = document.createElement('div');
+    filters.className = 'active-filters';
+    if (activeCategory){
+      const chip = document.createElement('span');
+      chip.className = 'chip';
+      chip.innerHTML = `${catName(activeCategory)} <button aria-label="Clear category filter">×</button>`;
+      chip.querySelector('button').onclick = () => { activeCategory = null; renderAll(); };
+      filters.appendChild(chip);
+    }
+    if (activeSourceKey){
+      const item = insights.find(i => sourceKey(i.source) === activeSourceKey);
+      const chip = document.createElement('span');
+      chip.className = 'chip';
+      chip.innerHTML = `${escapeHtml(sourceLabel(item && item.source))} <button aria-label="Clear source filter">×</button>`;
+      chip.querySelector('button').onclick = () => { activeSourceKey = null; renderAll(); };
+      filters.appendChild(chip);
+    }
+    if (recentOnly){
+      const chip = document.createElement('span');
+      chip.className = 'chip';
+      chip.innerHTML = `Recently added <button aria-label="Clear recently-added filter">×</button>`;
+      chip.querySelector('button').onclick = () => { recentOnly = false; renderAll(); };
+      filters.appendChild(chip);
+    }
+    if (bookmarksOnly){
+      const chip = document.createElement('span');
+      chip.className = 'chip';
+      chip.innerHTML = `My bookmarks <button aria-label="Clear bookmarks filter">×</button>`;
+      chip.querySelector('button').onclick = () => { bookmarksOnly = false; renderAll(); };
+      filters.appendChild(chip);
+    }
+    const clearAll = document.createElement('button');
+    clearAll.className = 'clear-all';
+    clearAll.textContent = 'Clear all';
+    clearAll.onclick = () => { activeCategory = null; activeSourceKey = null; recentOnly = false; bookmarksOnly = false; query = ''; renderAll(); };
+    filters.appendChild(clearAll);
+    el.appendChild(filters);
+  }
+
+  if (sidebarView === 'category'){
+    CLUSTERS.forEach(cluster => {
+      const wrap = document.createElement('div');
+      wrap.className = 'cluster' + (collapsedClusters.has(cluster.id) ? ' collapsed' : '');
+      const head = document.createElement('div');
+      head.className = 'cluster-head';
+      head.tabIndex = 0;
+      head.setAttribute('role', 'button');
+      head.setAttribute('aria-expanded', String(!collapsedClusters.has(cluster.id)));
+      head.innerHTML = `<span class="cluster-title">${cluster.name}</span><span class="cluster-caret">▾</span>`;
+      const toggleCluster = () => {
+        collapsedClusters.has(cluster.id) ? collapsedClusters.delete(cluster.id) : collapsedClusters.add(cluster.id);
+        renderSidebar();
+      };
+      head.onclick = toggleCluster;
+      head.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); toggleCluster(); } };
+      wrap.appendChild(head);
+      const list = document.createElement('ul');
+      list.className = 'cat-list';
+      cluster.categories.forEach(cat => {
+        const count = insights.filter(i => i.category === cat.id).length;
+        const li = document.createElement('li');
+        li.className = 'cat-item' + (activeCategory === cat.id ? ' active' : '');
+        li.style.setProperty('--cat-color', catColor(cat.id));
+        li.tabIndex = 0;
+        li.setAttribute('role', 'button');
+        li.setAttribute('aria-pressed', String(activeCategory === cat.id));
+        li.innerHTML = `<span class="cat-dot"></span><span class="cat-name">${cat.name}</span><span class="cat-count">${count}</span>`;
+        const toggleCat = () => { activeCategory = (activeCategory === cat.id ? null : cat.id); renderAll(); };
+        li.onclick = toggleCat;
+        li.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); toggleCat(); } };
+        list.appendChild(li);
+      });
+      wrap.appendChild(list);
+      el.appendChild(wrap);
+    });
+  } else {
+    const groups = {};
+    insights.forEach(i => {
+      const key = sourceKey(i.source);
+      if (!groups[key]) groups[key] = { source: i.source, count: 0 };
+      groups[key].count++;
+    });
+    const podcasts = Object.entries(groups).filter(([k]) => k.startsWith('podcast::'));
+    const books = Object.entries(groups).filter(([k]) => k.startsWith('book::'));
+
+    const renderGroup = (label, entries) => {
+      if (!entries.length) return;
+      const wrap = document.createElement('div');
+      wrap.className = 'cluster';
+      const head = document.createElement('div');
+      head.className = 'cluster-head';
+      head.innerHTML = `<span class="cluster-title">${label}</span>`;
+      wrap.appendChild(head);
+      const list = document.createElement('ul');
+      list.className = 'cat-list';
+      entries.forEach(([key, g]) => {
+        const li = document.createElement('li');
+        li.className = 'cat-item' + (activeSourceKey === key ? ' active' : '');
+        li.style.setProperty('--cat-color', 'var(--gold)');
+        li.tabIndex = 0;
+        li.setAttribute('role', 'button');
+        li.setAttribute('aria-pressed', String(activeSourceKey === key));
+        li.innerHTML = `<span class="cat-dot"></span><span class="cat-name">${escapeHtml(sourceLabel(g.source))}<br><span style="opacity:.6;font-size:11px;">${escapeHtml(sourceSubLabel(g.source))}</span></span><span class="cat-count">${g.count}</span>`;
+        const toggleSrc = () => { activeSourceKey = (activeSourceKey === key ? null : key); renderAll(); };
+        li.onclick = toggleSrc;
+        li.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); toggleSrc(); } };
+        list.appendChild(li);
+      });
+      wrap.appendChild(list);
+      el.appendChild(wrap);
+    };
+    renderGroup('Podcasts', podcasts);
+    renderGroup('Books', books);
+    if (!podcasts.length && !books.length){
+      el.appendChild(Object.assign(document.createElement('p'), { className: 'empty-state', textContent: 'No sources yet.' }));
+    }
+  }
+
+  document.getElementById('searchInput').oninput = (e) => {
+    query = e.target.value;
+    renderCards(); renderStats(); updateHeading();
+  };
+}
+
+function matches(item){
+  if (activeCategory && item.category !== activeCategory) return false;
+  if (activeSourceKey && sourceKey(item.source) !== activeSourceKey) return false;
+  if (recentOnly && item.batch !== latestBatch()) return false;
+  if (bookmarksOnly && !bookmarkedIds.has(item.id)) return false;
+  if (!query) return true;
+  const q = query.toLowerCase();
+  const src = item.source || {};
+  const ctx = item.context || {};
+  const hay = [
+    item.title, item.body, item.type, catName(item.category),
+    ctx.explanation, ctx.why, ctx.when, ctx.how,
+    (item.tags||[]).join(' '),
+    src.podcast, src.host, src.guest, src.episode, src.book, src.author, src.chapter
+  ].filter(Boolean).join(' ').toLowerCase();
+  return hay.includes(q);
+}
+
+
+function renderSource(source){
+  if (!source) return '';
+  if (source.kind === 'book'){
+    return `<div class="card-source">
+      <span class="src-kind">Book</span>
+      <span class="podcast">${escapeHtml(source.book||'')}</span>
+      ${source.author ? `<span>Author: ${escapeHtml(source.author)}</span>` : ''}
+      ${source.chapter ? `<span>${escapeHtml(source.chapter)}</span>` : ''}
+    </div>`;
+  }
+  return `<div class="card-source">
+    <span class="src-kind">Podcast</span>
+    <span class="podcast">${escapeHtml(source.podcast||'')}</span>
+    ${source.host ? `<span>Host: ${escapeHtml(source.host)}</span>` : ''}
+    ${source.guest ? `<span>Guest: ${escapeHtml(source.guest)}</span>` : ''}
+  </div>`;
+}
+
+function renderCards(){
+  const area = document.getElementById('cardArea');
+  const filtered = insights.filter(matches);
+  area.innerHTML = '';
+  if (!filtered.length){
+    area.innerHTML = `<div class="empty-state">No insights match yet. Try a different search, or clear the category filter.</div>`;
+    return;
+  }
+  const grid = document.createElement('div');
+  grid.className = 'grid';
+  filtered.forEach((item) => {
+    const color = catColor(item.category);
+    const cardId = 'PMN-' + String(insights.indexOf(item) + 1).padStart(3, '0');
+    const card = document.createElement('article');
+    card.className = 'card';
+    card.tabIndex = 0;
+    card.setAttribute('role', 'button');
+    card.setAttribute('aria-label', `${item.title} — ${catName(item.category)}, ${item.type || 'insight'}. Open for full context.`);
+    card.innerHTML = `
+      <div class="card-top-row">
+        <div class="card-top">
+          <span class="card-id">${cardId}</span>
+          <span style="display:flex;align-items:center;gap:6px;">
+            ${item.batch === latestBatch() && latestBatch() > 1 ? '<span class="new-badge">New</span>' : ''}
+            <span class="card-type">${escapeHtml(item.type || 'Insight')}</span>
+          </span>
+        </div>
+        ${sb ? `<button class="bookmark-btn${bookmarkedIds.has(item.id) ? ' saved' : ''}" data-bm="${escapeHtml(item.id)}" aria-label="${bookmarkedIds.has(item.id) ? 'Remove bookmark' : 'Add bookmark'}" type="button">★</button>` : ''}
+      </div>
+      <div class="card-cat" style="--cat-color:${color}"><span class="cat-dot"></span>${catName(item.category)}</div>
+      <h3>${escapeHtml(item.title)}</h3>
+      <p class="body">${escapeHtml(item.body)}</p>
+      ${item.tags && item.tags.length ? `<div class="card-tags">${item.tags.map(t=>`<span class="tag">${escapeHtml(t)}</span>`).join('')}</div>` : ''}
+      <div class="card-hint">Click for explanation, why, when &amp; how →</div>
+      ${renderSource(item.source)}
+    `;
+    card.onclick = () => openModal(item, cardId, color, card);
+    card.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); openModal(item, cardId, color, card); } };
+    const bmBtn = card.querySelector('.bookmark-btn');
+    if (bmBtn){
+      bmBtn.onclick = (e) => { e.stopPropagation(); toggleBookmark(item.id); };
+    }
+    grid.appendChild(card);
+  });
+  area.appendChild(grid);
+}
+
+let lastFocusedEl = null;
+
+function openModal(item, cardId, color, triggerEl){
+  lastFocusedEl = triggerEl || document.activeElement;
+  const ctx = item.context || {};
+  const panel = document.getElementById('modalPanel');
+  panel.setAttribute('aria-labelledby', 'modalTitle');
+  panel.innerHTML = `
+    <button class="modal-close" id="modalCloseBtn" aria-label="Close">×</button>
+    <div class="modal-top"><span class="card-id">${cardId}</span><span class="card-type">${escapeHtml(item.type || 'Insight')}</span>
+      ${sb ? `<button class="bookmark-btn${bookmarkedIds.has(item.id) ? ' saved' : ''}" id="modalBookmarkBtn" style="margin-left:auto;" aria-label="${bookmarkedIds.has(item.id) ? 'Remove bookmark' : 'Add bookmark'}" type="button">★</button>` : ''}
+    </div>
+    <div class="modal-cat" style="--cat-color:${color}"><span class="cat-dot"></span>${catName(item.category)}</div>
+    <h2 id="modalTitle">${escapeHtml(item.title)}</h2>
+    <p class="body">${escapeHtml(item.body)}</p>
+    ${ctx.explanation ? `<div class="modal-section"><h4>Explanation</h4><p>${escapeHtml(ctx.explanation)}</p></div>` : ''}
+    ${ctx.why ? `<div class="modal-section"><h4>Why it matters</h4><p>${escapeHtml(ctx.why)}</p></div>` : ''}
+    ${ctx.when ? `<div class="modal-section"><h4>When to apply</h4><p>${escapeHtml(ctx.when)}</p></div>` : ''}
+    ${ctx.how ? `<div class="modal-section"><h4>How to apply</h4><p>${escapeHtml(ctx.how)}</p></div>` : ''}
+    ${item.tags && item.tags.length ? `<div class="modal-tags">${item.tags.map(t=>`<span class="tag">${escapeHtml(t)}</span>`).join('')}</div>` : ''}
+    ${renderSource(item.source)}
+  `;
+  document.getElementById('modalCloseBtn').onclick = closeModal;
+  document.getElementById('modalBookmarkBtn')?.addEventListener('click', () => toggleBookmark(item.id));
+  document.getElementById('modalBackdrop').classList.add('open');
+  document.getElementById('modalCloseBtn').focus();
+}
+function closeModal(){
+  document.getElementById('modalBackdrop').classList.remove('open');
+  if (lastFocusedEl && typeof lastFocusedEl.focus === 'function') lastFocusedEl.focus();
+}
+document.getElementById('modalBackdrop').addEventListener('click', (e) => {
+  if (e.target.id === 'modalBackdrop') closeModal();
+});
+document.addEventListener('keydown', (e) => {
+  const backdrop = document.getElementById('modalBackdrop');
+  if (!backdrop.classList.contains('open')) return;
+  if (e.key === 'Escape'){ closeModal(); return; }
+  if (e.key === 'Tab'){
+    const focusable = document.getElementById('modalPanel').querySelectorAll('button, [href], input, [tabindex]:not([tabindex="-1"])');
+    if (!focusable.length) return;
+    const first = focusable[0], last = focusable[focusable.length - 1];
+    if (e.shiftKey && document.activeElement === first){ e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last){ e.preventDefault(); first.focus(); }
+  }
+});
+
+function escapeHtml(str){
+  return String(str||'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+function updateHeading(){
+  document.getElementById('mainHeading').textContent = activeCategory ? catName(activeCategory) : 'All insights';
+  const count = insights.filter(matches).length;
+  document.getElementById('mainCount').textContent = count + (count===1 ? ' insight' : ' insights');
+}
+function renderStats(){
+  document.getElementById('statTotal').textContent = insights.length;
+  const sources = new Set(insights.map(i => {
+    const s = i.source || {};
+    return s.kind === 'book' ? 'book::'+s.book : 'podcast::'+s.podcast+'::'+s.episode;
+  }));
+  document.getElementById('statSources').textContent = sources.size;
+}
+function renderAll(){ renderSidebar(); renderCards(); renderStats(); updateHeading(); }
+
+/* ---------------- Auth & bookmarks (Supabase) ---------------- */
+function renderAuthBox(){
+  const box = document.getElementById('authBox');
+  if (!sb){
+    box.innerHTML = `<span style="font-family:var(--mono);font-size:11px;color:var(--text-faint);">Sign-in not configured</span>`;
+    return;
+  }
+  if (currentUser){
+    const meta = currentUser.user_metadata || {};
+    box.innerHTML = `
+      <div class="user-chip">
+        ${meta.avatar_url ? `<img src="${meta.avatar_url}" alt="" />` : ''}
+        <span>${escapeHtml(meta.full_name || meta.name || currentUser.email || 'Signed in')}</span>
+        <button class="signout-btn" id="signOutBtn">Sign out</button>
+      </div>
+    `;
+    document.getElementById('signOutBtn').onclick = async () => { await sb.auth.signOut(); };
+  } else {
+    box.innerHTML = `<button class="auth-btn" id="signInBtn">Sign in with Google</button>`;
+    document.getElementById('signInBtn').onclick = async () => {
+      await sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.href } });
+    };
+  }
+}
+
+async function loadBookmarks(){
+  bookmarkedIds = new Set();
+  if (!sb || !currentUser) return;
+  const { data, error } = await sb.from('bookmarks').select('insight_id').eq('user_id', currentUser.id);
+  if (error){ console.error('Could not load bookmarks:', error.message); return; }
+  bookmarkedIds = new Set((data || []).map(r => r.insight_id));
+}
+
+async function toggleBookmark(insightId){
+  if (!sb) { alert('Sign-in is not configured yet on this copy of the app.'); return; }
+  if (!currentUser){ document.getElementById('signInBtn')?.click(); return; }
+  if (bookmarkedIds.has(insightId)){
+    const { error } = await sb.from('bookmarks').delete().eq('user_id', currentUser.id).eq('insight_id', insightId);
+    if (!error) bookmarkedIds.delete(insightId);
+  } else {
+    const { error } = await sb.from('bookmarks').insert({ user_id: currentUser.id, insight_id: insightId });
+    if (!error) bookmarkedIds.add(insightId);
+  }
+  renderAll();
+}
+
+if (sb){
+  sb.auth.onAuthStateChange(async (_event, session) => {
+    currentUser = session?.user || null;
+    renderAuthBox();
+    await loadBookmarks();
+    renderAll();
+  });
+}
+
+
+document.getElementById('themeToggle').onclick = () => {
+  const root = document.documentElement;
+  const isLight = root.getAttribute('data-theme') === 'light';
+  if (isLight){
+    root.removeAttribute('data-theme');
+    document.getElementById('themeToggle').textContent = '☀️ Light mode';
+    document.getElementById('themeToggle').setAttribute('aria-pressed', 'false');
+  } else {
+    root.setAttribute('data-theme', 'light');
+    document.getElementById('themeToggle').textContent = '🌙 Dark mode';
+    document.getElementById('themeToggle').setAttribute('aria-pressed', 'true');
+  }
+};
+
+document.getElementById('importToggle').onclick = () => {
+  document.getElementById('importPanel').classList.toggle('open');
+};
+document.getElementById('importBtn').onclick = async () => {
+  const raw = document.getElementById('importInput').value.trim();
+  const msg = document.getElementById('importMsg');
+  if (!raw){ msg.textContent = 'Paste a JSON array first.'; return; }
+  let parsed;
+  try{ parsed = JSON.parse(raw); if (!Array.isArray(parsed)) throw new Error('not an array'); }
+  catch(e){ msg.textContent = 'Could not parse that as a JSON array — check the format.'; return; }
+  const withIds = parsed.map((item, i) => ({ id: 'preview-' + Date.now() + '-' + i, ...item }));
+  insights = insights.concat(withIds);
+  document.getElementById('importInput').value = '';
+  msg.textContent = `Previewing ${withIds.length} insight(s) in this browser only — reload resets it. Send me the source to make it permanent.`;
+  renderAll();
+};
+
+renderAuthBox();
+renderAll();
+
+</script>
+</body>
+</html>
