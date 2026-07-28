@@ -82,6 +82,40 @@
     font-family: var(--mono); font-size: 11.5px; letter-spacing: 0.03em;
   }
   .brand-signature img{ height: 26px; width: auto; flex: none; }
+
+  .auth-gate{
+    position: fixed; inset: 0; z-index: 500; background: var(--bg);
+    display: flex; align-items: center; justify-content: center; flex-direction: column;
+    gap: 14px; padding: 24px; text-align: center;
+  }
+  .auth-gate-inner{ display:flex; flex-direction:column; align-items:center; gap: 12px; max-width: 420px; }
+  .logo-mark-lg{ width: 68px; height: 68px; border-radius: 15px; margin-bottom: 4px; }
+  .auth-gate h1{ font-family: var(--serif); font-weight: 600; font-size: 30px; color: var(--text); margin: 0; }
+  .auth-gate p{ color: var(--text-dim); font-size: 14px; margin: 0; line-height: 1.5; }
+  .auth-gate-btn{
+    background: var(--gold); color: #14181f; border: none; border-radius: var(--radius);
+    padding: 13px 26px; font-size: 14px; font-weight: 600; font-family: var(--sans); margin-top: 6px;
+  }
+  .auth-gate-note{ color: var(--text-faint) !important; font-size: 12px !important; margin-top: 4px !important; }
+
+  .toast{
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(10px);
+    background: var(--bg-card); border: 1px solid var(--hairline); color: var(--text);
+    padding: 10px 18px; border-radius: var(--radius); font-family: var(--mono); font-size: 12px;
+    opacity: 0; pointer-events: none; transition: opacity .2s ease, transform .2s ease; z-index: 600;
+    max-width: 90vw;
+  }
+  .toast.open{ opacity: 1; transform: translateX(-50%) translateY(0); }
+  .toast.error{ border-color: #B5473A; color: #E8A99C; }
+
+  .pager{ display:flex; align-items:center; justify-content:center; gap: 16px; margin-top: 26px; }
+  .pager-btn{
+    background: var(--bg-card); border: 1px solid var(--hairline); color: var(--text);
+    border-radius: var(--radius); width: 38px; height: 38px; font-size: 16px;
+  }
+  .pager-btn:hover:not(:disabled){ border-color: var(--gold-dim); color: var(--gold); }
+  .pager-btn:disabled{ opacity: 0.35; cursor: default; }
+  .pager-label{ font-family: var(--mono); font-size: 12px; color: var(--text-faint); min-width: 100px; text-align:center; }
   .title-row{ display:flex; align-items:center; gap: 14px; margin-bottom: 8px; }
   .title-row h1{ margin: 0; }
   .logo-mark{ width: 44px; height: 44px; flex: none; border-radius: 10px; }
@@ -271,6 +305,16 @@
   <span>Pramod Khombare. All Rights Reserved.</span>
 </footer>
 
+<div id="authGate" class="auth-gate">
+  <div class="auth-gate-inner">
+    <img class="logo-mark-lg" src="data:image/png;base64,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" alt="Product Manthan logo" />
+    <h1>Product Manthan</h1>
+    <p>Learn Faster. Think Better. Build Better Products.</p>
+    <button class="auth-gate-btn" id="gateSignInBtn">Sign in with Google</button>
+    <p class="auth-gate-note">Sign in to access the archive and save your own bookmarks.</p>
+  </div>
+</div>
+
 <div class="modal-backdrop" id="modalBackdrop">
   <div class="modal" id="modalPanel" role="dialog" aria-modal="true"></div>
 </div>
@@ -292,6 +336,35 @@ try{
   }
 } catch(e){
   console.error('Supabase failed to initialize — sign-in/bookmarks disabled, rest of the app still works.', e);
+}
+
+function showGate(show){
+  const gate = document.getElementById('authGate');
+  const shell = document.querySelector('.shell');
+  const sig = document.querySelector('.brand-signature');
+  if (!gate) return;
+  gate.style.display = show ? 'flex' : 'none';
+  if (shell) shell.style.display = show ? 'none' : '';
+  if (sig) sig.style.display = show ? 'none' : '';
+}
+// Default to gated if sign-in is configured — this flips to open once we know
+// there's no session (or once a session is confirmed), avoiding a flash of the
+// full archive before we've checked. If Supabase isn't configured at all,
+// fail open rather than lock people out of a broken gate.
+showGate(!!sb);
+
+function showToast(message, isError){
+  let el = document.getElementById('toast');
+  if (!el){
+    el = document.createElement('div');
+    el.id = 'toast';
+    el.className = 'toast';
+    document.body.appendChild(el);
+  }
+  el.textContent = message;
+  el.className = 'toast open' + (isError ? ' error' : '');
+  clearTimeout(el._hideTimer);
+  el._hideTimer = setTimeout(() => { el.className = 'toast'; }, 4000);
 }
 
 const CLUSTERS = [
@@ -569,6 +642,16 @@ let activeCategory = null;
 let currentUser = null;
 let bookmarkedIds = new Set();
 let bookmarksOnly = false;
+let currentPage = 1;
+
+function itemsPerPage(){
+  const w = window.innerWidth;
+  if (w >= 1400) return 6;
+  if (w >= 1100) return 4;
+  if (w >= 760)  return 3;
+  if (w >= 480)  return 2;
+  return 1;
+}
 let activeSourceKey = null;
 let sidebarView = 'category'; // 'category' | 'source'
 let recentOnly = false;
@@ -609,7 +692,7 @@ function renderSidebar(){
   recentBtn.className = 'recent-chip' + (recentOnly ? ' active' : '');
   recentBtn.type = 'button';
   recentBtn.innerHTML = `✨ Recently added <span class="recent-count">${recentCount}</span>`;
-  recentBtn.onclick = () => { recentOnly = !recentOnly; renderAll(); };
+  recentBtn.onclick = () => { recentOnly = !recentOnly; currentPage = 1; renderAll(); };
   el.appendChild(recentBtn);
 
   if (sb){
@@ -621,7 +704,7 @@ function renderSidebar(){
       : `★ My bookmarks <span class="recent-count">sign in</span>`;
     bmBtn.onclick = () => {
       if (!currentUser){ document.getElementById('signInBtn')?.click(); return; }
-      bookmarksOnly = !bookmarksOnly; renderAll();
+      bookmarksOnly = !bookmarksOnly; currentPage = 1; renderAll();
     };
     el.appendChild(bmBtn);
   }
@@ -671,7 +754,7 @@ function renderSidebar(){
     const clearAll = document.createElement('button');
     clearAll.className = 'clear-all';
     clearAll.textContent = 'Clear all';
-    clearAll.onclick = () => { activeCategory = null; activeSourceKey = null; recentOnly = false; bookmarksOnly = false; query = ''; renderAll(); };
+    clearAll.onclick = () => { activeCategory = null; activeSourceKey = null; recentOnly = false; bookmarksOnly = false; query = ''; currentPage = 1; renderAll(); };
     filters.appendChild(clearAll);
     el.appendChild(filters);
   }
@@ -707,7 +790,7 @@ function renderSidebar(){
         li.setAttribute('role', 'button');
         li.setAttribute('aria-pressed', String(activeCategory === cat.id));
         li.innerHTML = `<span class="cat-dot"></span><span class="cat-name">${cat.name}</span><span class="cat-count">${count}</span>`;
-        const toggleCat = () => { activeCategory = (activeCategory === cat.id ? null : cat.id); renderAll(); };
+        const toggleCat = () => { activeCategory = (activeCategory === cat.id ? null : cat.id); currentPage = 1; renderAll(); };
         li.onclick = toggleCat;
         li.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); toggleCat(); } };
         list.appendChild(li);
@@ -743,7 +826,7 @@ function renderSidebar(){
         li.setAttribute('role', 'button');
         li.setAttribute('aria-pressed', String(activeSourceKey === key));
         li.innerHTML = `<span class="cat-dot"></span><span class="cat-name">${escapeHtml(sourceLabel(g.source))}<br><span style="opacity:.6;font-size:11px;">${escapeHtml(sourceSubLabel(g.source))}</span></span><span class="cat-count">${g.count}</span>`;
-        const toggleSrc = () => { activeSourceKey = (activeSourceKey === key ? null : key); renderAll(); };
+        const toggleSrc = () => { activeSourceKey = (activeSourceKey === key ? null : key); currentPage = 1; renderAll(); };
         li.onclick = toggleSrc;
         li.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); toggleSrc(); } };
         list.appendChild(li);
@@ -762,6 +845,7 @@ function renderSidebar(){
 
   document.getElementById('searchInput').oninput = (e) => {
     query = e.target.value;
+    currentPage = 1;
     renderCards(); renderStats(); updateHeading();
   };
 }
@@ -811,9 +895,17 @@ function renderCards(){
     area.innerHTML = `<div class="empty-state">No insights match yet. Try a different search, or clear the category filter.</div>`;
     return;
   }
+
+  const perPage = itemsPerPage();
+  const totalPages = Math.max(1, Math.ceil(filtered.length / perPage));
+  if (currentPage > totalPages) currentPage = totalPages;
+  if (currentPage < 1) currentPage = 1;
+  const start = (currentPage - 1) * perPage;
+  const pageItems = filtered.slice(start, start + perPage);
+
   const grid = document.createElement('div');
   grid.className = 'grid';
-  filtered.forEach((item) => {
+  pageItems.forEach((item) => {
     const color = catColor(item.category);
     const cardId = 'PMN-' + String(insights.indexOf(item) + 1).padStart(3, '0');
     const card = document.createElement('article');
@@ -848,7 +940,39 @@ function renderCards(){
     grid.appendChild(card);
   });
   area.appendChild(grid);
+
+  if (totalPages > 1){
+    const pager = document.createElement('div');
+    pager.className = 'pager';
+    const prevBtn = document.createElement('button');
+    prevBtn.className = 'pager-btn';
+    prevBtn.setAttribute('aria-label', 'Previous page');
+    prevBtn.disabled = currentPage <= 1;
+    prevBtn.textContent = '←';
+    prevBtn.onclick = () => { currentPage--; renderCards(); document.getElementById('mainContent')?.scrollIntoView?.({behavior:'smooth', block:'start'}); };
+
+    const nextBtn = document.createElement('button');
+    nextBtn.className = 'pager-btn';
+    nextBtn.setAttribute('aria-label', 'Next page');
+    nextBtn.disabled = currentPage >= totalPages;
+    nextBtn.textContent = '→';
+    nextBtn.onclick = () => { currentPage++; renderCards(); document.getElementById('mainContent')?.scrollIntoView?.({behavior:'smooth', block:'start'}); };
+
+    const label = document.createElement('span');
+    label.className = 'pager-label';
+    label.textContent = `Page ${currentPage} of ${totalPages}`;
+
+    pager.appendChild(prevBtn);
+    pager.appendChild(label);
+    pager.appendChild(nextBtn);
+    area.appendChild(pager);
+  }
 }
+
+window.addEventListener('resize', () => {
+  clearTimeout(window._resizeT);
+  window._resizeT = setTimeout(renderCards, 150);
+});
 
 let lastFocusedEl = null;
 
@@ -942,23 +1066,34 @@ function renderAuthBox(){
   }
 }
 
+document.getElementById('gateSignInBtn')?.addEventListener('click', async () => {
+  if (!sb) return;
+  await sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.href } });
+});
+
 async function loadBookmarks(){
   bookmarkedIds = new Set();
   if (!sb || !currentUser) return;
   const { data, error } = await sb.from('bookmarks').select('insight_id').eq('user_id', currentUser.id);
-  if (error){ console.error('Could not load bookmarks:', error.message); return; }
+  if (error){
+    console.error('Could not load bookmarks:', error.message);
+    showToast('Could not load your bookmarks: ' + error.message, true);
+    return;
+  }
   bookmarkedIds = new Set((data || []).map(r => r.insight_id));
 }
 
 async function toggleBookmark(insightId){
-  if (!sb) { alert('Sign-in is not configured yet on this copy of the app.'); return; }
+  if (!sb) { showToast('Sign-in is not configured on this copy of the app.', true); return; }
   if (!currentUser){ document.getElementById('signInBtn')?.click(); return; }
   if (bookmarkedIds.has(insightId)){
     const { error } = await sb.from('bookmarks').delete().eq('user_id', currentUser.id).eq('insight_id', insightId);
-    if (!error) bookmarkedIds.delete(insightId);
+    if (!error){ bookmarkedIds.delete(insightId); showToast('Bookmark removed'); }
+    else { console.error('Bookmark delete failed:', error); showToast('Could not remove bookmark: ' + error.message, true); }
   } else {
-    const { error } = await sb.from('bookmarks').insert({ user_id: currentUser.id, insight_id: insightId });
-    if (!error) bookmarkedIds.add(insightId);
+    const { error } = await sb.from('bookmarks').insert({ user_id: currentUser.id, insight_id: insightId, created_at: new Date().toISOString() });
+    if (!error){ bookmarkedIds.add(insightId); showToast('Bookmark saved'); }
+    else { console.error('Bookmark insert failed:', error); showToast('Could not save bookmark: ' + error.message, true); }
   }
   renderAll();
 }
@@ -966,6 +1101,7 @@ async function toggleBookmark(insightId){
 if (sb){
   sb.auth.onAuthStateChange(async (_event, session) => {
     currentUser = session?.user || null;
+    showGate(!currentUser);
     renderAuthBox();
     await loadBookmarks();
     renderAll();
